@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Super Tiger - Mobile Edition</title>
+    <meta name="description" content="Super Tiger - Game platformer seru mengumpulkan dolar!">
+    <title>Super Tiger</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body, html {
@@ -15,6 +16,8 @@
             touch-action: none; /* Mencegah zoom/scroll pada layar sentuh */
             overflow: hidden;
             font-family: sans-serif;
+            -webkit-user-select: none;
+            user-select: none;
         }
         #game-container {
             position: relative;
@@ -77,7 +80,7 @@
         #btn-jump {
             width: 80px;
             height: 80px;
-            background: rgba(34, 197, 94, 0.6); /* Hijau */
+            background: rgba(34, 197, 94, 0.6);
             border: 3px solid rgba(134, 239, 172, 0.8);
             border-radius: 50%;
             display: flex;
@@ -105,14 +108,14 @@
         <div id="ui-layer">
             <!-- Header (Skor) -->
             <div class="flex justify-between items-start pointer-auto">
-                <div class="bg-black/60 text-white font-mono text-xl md:text-2xl px-4 py-2 rounded-xl border-2 border-white/20 shadow-lg">
-                    Level: <span id="level-display" class="text-yellow-400 font-bold mr-4">1</span>
-                    Dolar: <span id="score" class="text-green-400 font-bold">0</span> $
+                <div class="bg-black/60 text-white font-mono text-xl md:text-2xl px-4 py-2 rounded-xl border-2 border-white/20 shadow-lg flex items-center gap-4">
+                    <div>Lvl: <span id="level-display" class="text-yellow-400 font-bold">1</span></div>
+                    <div>Dolar: <span id="score" class="text-green-400 font-bold">0</span> $</div>
                 </div>
             </div>
 
             <!-- Area Kontrol Bawah -->
-            <div class="flex justify-between items-end w-full pb-4 px-2 pointer-auto mb-4">
+            <div class="flex justify-between items-end w-full pb-4 px-2 pointer-auto mb-4 sm:hidden">
                 <!-- Analog Kiri -->
                 <div id="analog-base">
                     <div id="analog-stick"></div>
@@ -127,7 +130,7 @@
         <div id="overlay" class="hidden absolute inset-0 bg-black/80 flex flex-col items-center justify-center text-white z-50 pointer-events-auto backdrop-blur-sm px-4 text-center">
             <h1 id="overlay-title" class="text-5xl md:text-6xl font-extrabold mb-4 text-yellow-400 drop-shadow-lg">GAME OVER</h1>
             <p id="overlay-desc" class="text-lg md:text-xl mb-8">Anda mengumpulkan <span id="final-score" class="text-green-400 font-bold">0</span> Dolar.</p>
-            <button id="btn-restart" class="px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white text-2xl font-bold rounded-2xl border-4 border-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.5)] transition-transform active:scale-95">
+            <button id="btn-restart" class="px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white text-xl md:text-2xl font-bold rounded-2xl border-4 border-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.5)] transition-transform active:scale-95">
                 MAIN LAGI
             </button>
         </div>
@@ -148,7 +151,8 @@ window.onload = function() {
 
     // --- Aset Game ---
     const imgKarakter = new Image();
-    imgKarakter.src = '1000074052.png'; // Gambar yang Anda unggah
+    // Gunakan ./ agar path relatif aman saat dihosting di GitHub Pages
+    imgKarakter.src = './1000074052.png'; 
     let gambarDimuat = false;
     imgKarakter.onload = () => { gambarDimuat = true; };
 
@@ -169,7 +173,7 @@ window.onload = function() {
         normalHeight: 36, duckHeight: 18, 
         isDucking: false, 
         vx: 0, vy: 0, 
-        speed: 5.5, jumpPower: -10,
+        speed: 5.5, jumpPower: -10.5, // Disesuaikan untuk hold-jump
         grounded: false, arah: 1,
         jumpsLeft: 2, maxJumps: 2 
     };
@@ -178,8 +182,7 @@ window.onload = function() {
     // --- Peta Level (10 Level) ---
     // P = Pemain, # = Tanah, $ = Dolar, E = Musuh, W = Garis Finish, ^ = Jebakan Duri
     const daftarLevel = [
-        // Level 1: Pengenalan
-        [
+        [ // Level 1
             "                                                                                ",
             "                                                                                ",
             "                                                                                ",
@@ -195,8 +198,7 @@ window.onload = function() {
             "P                                                                       W W W W ",
             "################################################################################"
         ],
-        // Level 2: Jurang Pertama
-        [
+        [ // Level 2
             "                                                                                ",
             "                                                                                ",
             "                                                                                ",
@@ -212,8 +214,7 @@ window.onload = function() {
             "P                                                                       W W W W ",
             "################       ################################       ##################"
         ],
-        // Level 3: Awas Duri!
-        [
+        [ // Level 3
             "                                                                                ",
             "                                                                                ",
             "                                                                                ",
@@ -229,8 +230,7 @@ window.onload = function() {
             "P                                                                       W W W W ",
             "################################################################################"
         ],
-        // Level 4: Duri dan Jurang Berpadu
-        [
+        [ // Level 4
             "                                                                                ",
             "                                                                                ",
             "                                                                                ",
@@ -246,8 +246,7 @@ window.onload = function() {
             "P                                                                     W W W W W ",
             "##################      ########################################      ##########"
         ],
-        // Level 5: Platform Melayang
-        [
+        [ // Level 5
             "                                                                                ",
             "                                                                                ",
             "                                         $$$                                    ",
@@ -263,8 +262,7 @@ window.onload = function() {
             "P      ^^^             ^^^                   ^^^              ^^^     W W W W W ",
             "################################################################################"
         ],
-        // Level 6: Lorong Sempit
-        [
+        [ // Level 6
             "                                                                                ",
             "                                                                                ",
             "                                                                                ",
@@ -280,8 +278,7 @@ window.onload = function() {
             "P      ^^^                                         ^^^                W W W W W ",
             "################################################################################"
         ],
-        // Level 7: Lompatan Presisi Double Jump
-        [
+        [ // Level 7
             "                                                                                ",
             "                                                                                ",
             "                                                                                ",
@@ -297,8 +294,7 @@ window.onload = function() {
             "P       ######         ######             ######             ######   W W W W W ",
             "#####   ######   ###   ######     ###     ######    ###      ######   ##########"
         ],
-        // Level 8: Jebakan Beruntun
-        [
+        [ // Level 8
             "                                                                                ",
             "                                                                                ",
             "                                                                                ",
@@ -314,8 +310,7 @@ window.onload = function() {
             "P                               #######                                 W W W W ",
             "######     ^^^^^^^^^^     ######       ######     ^^^^^^^^^^     ###############"
         ],
-        // Level 9: Ekstrem
-        [
+        [ // Level 9
             "                                                                                ",
             "                                                                                ",
             "                                $$$                                             ",
@@ -331,8 +326,7 @@ window.onload = function() {
             "P    ^^                 ^^             ^^              ^^           W W W W W W ",
             "########      ###      ########       #####     ###   #######      #############"
         ],
-        // Level 10: Ujian Terakhir Sang Tiger
-        [
+        [ // Level 10
             "                                                                                ",
             "                                            $$$$$                               ",
             "                                           #######                              ",
@@ -343,4 +337,4 @@ window.onload = function() {
             "                                     E                 E                        ",
             "             ###                  #######           #######                   W ",
             "                                                                            W W ",
-            "                                                                  
+            "                                                    
