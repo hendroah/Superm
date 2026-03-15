@@ -12,12 +12,24 @@
             padding: 0;
             width: 100%;
             height: 100%;
-            background-color: #1e1b4b; /* Background luar canvas */
+            background-color: #1e1b4b; /* Background gelap */
             touch-action: none; /* Mencegah zoom/scroll pada layar sentuh */
             overflow: hidden;
             font-family: sans-serif;
             -webkit-user-select: none;
             user-select: none;
+        }
+        #loading-screen {
+            position: absolute;
+            inset: 0;
+            background-color: #1e1b4b;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fbbf24;
+            font-size: 24px;
+            font-weight: bold;
+            z-index: 9999;
         }
         #game-container {
             position: relative;
@@ -32,24 +44,20 @@
             display: block;
             width: 100%;
             height: 100%;
-            object-fit: cover; /* Memenuhi layar */
+            object-fit: cover;
             image-rendering: pixelated;
         }
-        
-        /* UI & Kontrol Sentuh */
         #ui-layer {
             position: absolute;
             inset: 0;
-            pointer-events: none; /* Agar tidak memblokir canvas */
+            pointer-events: none;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             padding: 1rem;
             z-index: 10;
         }
-        .pointer-auto {
-            pointer-events: auto;
-        }
+        .pointer-auto { pointer-events: auto; }
         
         /* Joystick Kiri */
         #analog-base {
@@ -99,6 +107,8 @@
     </style>
 </head>
 <body>
+    <!-- Layar Loading Awal -->
+    <div id="loading-screen">MEMUAT GAME...</div>
 
     <div id="game-container">
         <!-- Canvas Game -->
@@ -106,7 +116,6 @@
 
         <!-- Lapisan Antarmuka (UI) -->
         <div id="ui-layer">
-            <!-- Header (Skor) -->
             <div class="flex justify-between items-start pointer-auto">
                 <div class="bg-black/60 text-white font-mono text-xl md:text-2xl px-4 py-2 rounded-xl border-2 border-white/20 shadow-lg flex items-center gap-4">
                     <div>Lvl: <span id="level-display" class="text-yellow-400 font-bold">1</span></div>
@@ -114,19 +123,13 @@
                 </div>
             </div>
 
-            <!-- Area Kontrol Bawah -->
             <div class="flex justify-between items-end w-full pb-4 px-2 pointer-auto mb-4 sm:hidden">
-                <!-- Analog Kiri -->
-                <div id="analog-base">
-                    <div id="analog-stick"></div>
-                </div>
-
-                <!-- Tombol Lompat Kanan -->
+                <div id="analog-base"><div id="analog-stick"></div></div>
                 <div id="btn-jump">△</div>
             </div>
         </div>
 
-        <!-- Layar Overlay (Game Over / Menang) -->
+        <!-- Layar Overlay -->
         <div id="overlay" class="hidden absolute inset-0 bg-black/80 flex flex-col items-center justify-center text-white z-50 pointer-events-auto backdrop-blur-sm px-4 text-center">
             <h1 id="overlay-title" class="text-5xl md:text-6xl font-extrabold mb-4 text-yellow-400 drop-shadow-lg">GAME OVER</h1>
             <p id="overlay-desc" class="text-lg md:text-xl mb-8">Anda mengumpulkan <span id="final-score" class="text-green-400 font-bold">0</span> Dolar.</p>
@@ -137,11 +140,11 @@
     </div>
 
 <script>
-window.onload = function() {
+// Kode langsung dieksekusi agar tidak terhambat loading asset eksternal
+(function() {
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     
-    // Resolusi Logis Game (akan diskalakan ke layar via CSS)
     const LOGICAL_WIDTH = 800;
     const LOGICAL_HEIGHT = 560;
     const TILE_SIZE = 40;
@@ -151,36 +154,32 @@ window.onload = function() {
 
     // --- Aset Game ---
     const imgKarakter = new Image();
-    // Gunakan ./ agar path relatif aman saat dihosting di GitHub Pages
     imgKarakter.src = './1000074052.png'; 
     let gambarDimuat = false;
     imgKarakter.onload = () => { gambarDimuat = true; };
 
-    // --- State & Variabel Global ---
+    // --- State & Variabel ---
     let frameId;
     let skor = 0;
     let kameraX = 0;
     let gameAktif = true;
     let currentLevel = 1;
     const MAX_LEVEL = 10;
-    let overlayState = 'dead'; // 'dead', 'next', 'end'
+    let overlayState = 'dead';
     const input = { left: false, right: false, up: false, down: false };
 
-    // Entitas
     let pemain = { 
         x: 50, y: 0, 
         width: 36, height: 36, 
         normalHeight: 36, duckHeight: 18, 
         isDucking: false, 
         vx: 0, vy: 0, 
-        speed: 5.5, jumpPower: -10.5, // Disesuaikan untuk hold-jump
+        speed: 5.5, jumpPower: -10.5,
         grounded: false, arah: 1,
         jumpsLeft: 2, maxJumps: 2 
     };
     let platforms = [], dolars = [], musuhList = [], partikelList = [], pohonList = [];
 
-    // --- Peta Level (10 Level) ---
-    // P = Pemain, # = Tanah, $ = Dolar, E = Musuh, W = Garis Finish, ^ = Jebakan Duri
     const daftarLevel = [
         [ // Level 1
             "                                                                                ",
@@ -337,4 +336,6 @@ window.onload = function() {
             "                                     E                 E                        ",
             "             ###                  #######           #######                   W ",
             "                                                                            W W ",
-            "                                                    
+            "                                                                          W W W ",
+            "                                                                        W W W W ",
+            "P   ^^^     ^^^       ^^^      ^^^        ^^^           
